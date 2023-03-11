@@ -36,16 +36,16 @@ public class DotsMiniMax {
             repeat = false;
             if (verificaJogada(moves, table, jogada, aux, gameSquares)) {
                 count++;
-            }
-            if (verificaQuadrado(moves, table, jogada, gameSquares, aux, p)) {
-                repeat = true;
-            }
+                if (verificaQuadrado(moves, table, jogada, gameSquares, aux, p)) {
+                    repeat = true;
+                }
 
-            if (!repeat) {
-                if (p == IA) {
-                    p = P1;
-                } else {
-                    p = IA;
+                if (!repeat) {
+                    if (p == IA) {
+                        p = P1;
+                    } else {
+                        p = IA;
+                    }
                 }
             }
             printTable(table);
@@ -63,9 +63,37 @@ public class DotsMiniMax {
         } else {
             System.out.println("JOGO EMPATADO!");
         }
-
+        /*
+        Node start = new Node(1);
+        boolean posicoes[] = new boolean[12];
+        
+        for(int i = 0; i < 12; i++)
+            posicoes[i] = true;
+            
+        posicoes[0] = false;
+        posicoes[3] = false;
+        
+        preencherArvore(4, start, posicoes);
+         */
     }
- 
+
+    public static void preencherArvore(int j, Node start, boolean posicoes[]) {
+        int pai;
+        Node aux = new Node(j);
+        start.getFilhos().add(aux);
+
+        for (int i = 0; i < 12; i++) {
+            if (posicoes[i]) {
+                posicoes[i] = false;
+                pai = aux.getId();
+                System.out.println(pai);
+                preencherArvore(i + 1, aux, posicoes);
+                posicoes[i] = true;
+            }
+
+        }
+    }
+
     public static boolean verificaQuadrado(HashMap moves, String table[][], int jogada, Squares gameSquares[], Positions aux, Player p) {
 
         boolean repeat = false;
