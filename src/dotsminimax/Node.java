@@ -8,12 +8,31 @@ import java.util.ArrayList;
  */
 public class Node {
     private int id;
-    private Player player;
+    private int minmax = 0;
+    private String player;
+    private String[] gamesSquare = new String[4];
+
+    public String[] getGamesSquare() {
+        return gamesSquare;
+    }
+
+    public void setGamesSquare(String[] gamesSquare) {
+        this.gamesSquare = gamesSquare;
+    }
     private ArrayList<Node> filhos;
 
-    public Node(int id) {
+    public int getMinmax() {
+        return minmax;
+    }
+
+    public void setMinmax(int minmax) {
+        this.minmax = minmax;
+    }
+    
+    public Node(int id, String P) {
         this.id = id;
         filhos = new ArrayList<Node>();
+        player = P;
     }
 
     public int getId() {
@@ -24,11 +43,11 @@ public class Node {
         this.id = id;
     }
 
-    public Player getPlayer() {
+    public String getPlayer() {
         return player;
     }
 
-    public void setPlayer(Player player) {
+    public void setPlayer(String player) {
         this.player = player;
     }
 
@@ -40,8 +59,9 @@ public class Node {
         this.filhos = filhos;
     }
     
+    public void printNode(){
+        System.out.println("Nome do Jogador: "+player+" "+"ID Node: " + id);
     
-    
-    
+    }
     
 }
