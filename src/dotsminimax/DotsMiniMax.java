@@ -6,6 +6,7 @@ import java.util.Scanner;
 /**
  *
  * @author Douglas
+ * @author vitor
  */
 public class DotsMiniMax {
 
@@ -14,13 +15,11 @@ public class DotsMiniMax {
      */
     public static void main(String[] args) {
         Positions aux = null;
-        String table[][] = new String[5][5];
+        String table[][] = new String[5][5], copiaTable[][] = new String[5][5];
         HashMap<Integer, Positions> moves = new HashMap<Integer, Positions>();
         Scanner sc = new Scanner(System.in);
         int count = 0, jogada;
-        Player IA = new Player("IA");
-        Player P1 = new Player("P1");
-        Player p = IA;
+        String IA = "IA", P1 = "P1", p;
         boolean repeat = false;
 
         // Jogador 1 = IA, Jogador 2 = Player
@@ -28,7 +27,7 @@ public class DotsMiniMax {
         String gameSquares[] = new String[4];
 
         fillTable(table);
-        
+
         Node start = new Node(1, "IA");
         boolean posicoes[] = new boolean[12];
 
@@ -36,8 +35,9 @@ public class DotsMiniMax {
             posicoes[i] = true;
         }
 
+        p = IA;
         posicoes[0] = false;
-        verificaJogada(moves, table, 1, aux, "IA");
+        verificaJogada(moves, table, 1, aux, p);
         count++;
 
         printTable(table);
@@ -45,70 +45,83 @@ public class DotsMiniMax {
         System.out.printf("Vez do jogador: ");
         jogada = sc.nextInt();
 
-        while (!(verificaJogada(moves, table, jogada, aux, "P1"))) {
+        p = P1;
+        while (!(verificaJogada(moves, table, jogada, aux, p))) {
             System.out.println("JOGADA INVALIDA");
             System.out.print("Tente novamente: ");
             jogada = sc.nextInt();
         }
         count++;
         printTable(table);
-        
+
+        copiaTabuleiro(copiaTable, table);
+
         posicoes[jogada - 1] = false;
-        verificaJogada(moves, table, jogada, aux, "P1");
-        verificaQuadrado(moves, table, jogada, gameSquares, aux, "P1");
+        verificaQuadrado(moves, table, jogada, gameSquares, aux, p);
 
-        preencherArvore(start, posicoes, table, moves, gameSquares, "IA");
-        minMax(start);
-        verificaGanhador(start);
-        /*
+        p = IA;
+        preencherArvore(start, posicoes, copiaTable, moves, gameSquares, p);
+
         while (count < 12) {
-            repeat = false;
-            if (verificaJogada(moves, table, jogada, aux, gameSquares)) {
-                count++;
-                if (verificaQuadrado(moves, table, jogada, gameSquares, aux, p)) {
-                    repeat = true;
+            if (p.equals(IA)) {
+                start = melhorJogada(start);
+                jogada = start.getId();
+                verificaJogada(moves, table, jogada, aux, p);
+            } else {
+                System.out.printf("Vez do jogador: ");
+                jogada = sc.nextInt();
+                while (!(verificaJogada(moves, table, jogada, aux, p))) {
+                    System.out.println("JOGADA INVALIDA");
+                    System.out.print("Tente novamente: ");
+                    jogada = sc.nextInt();
                 }
+                start = jogadaEquivalente(jogada, start);
+            }
 
-                if (!repeat) {
-                    if (p == IA) {
-                        p = P1;
-                    } else {
-                        p = IA;
-                    }
+            repeat = verificaQuadrado(moves, table, jogada, gameSquares, aux, p);
+
+            if (!repeat) {
+                if (p.equals(P1)) {
+                    p = IA;
+                } else {
+                    p = P1;
                 }
             }
+            System.out.println("");
             printTable(table);
+            count++;
         }
 
         System.out.println("FIM DE JOGO!");
 
-        if (IA.getPoints() != P1.getPoints()) {
-            if (IA.getPoints() > P1.getPoints()) {
-                p = IA;
-            } else {
-                p = P1;
-            }
-            System.out.println("GANHADOR : " + p.getName());
-        } else {
-            System.out.println("JOGO EMPATADO!");
-        }
-         */
     }
 
-    public static void verificaGanhador(Node start) {
-        if (start.getFilhos().isEmpty()) {
-            if (start.getMinmax() == 0) {
-                printaResults(start);
-            }
-        } else {
-            for (Node aux : start.getFilhos()) {
-                verificaGanhador(aux);
+    public static Node melhorJogada(Node raiz) {
+        int max = -2;
+        Node newRaiz = raiz;
+        for (Node aux : raiz.getFilhos()) {
+            if (aux.getMinmax() > max) {
+                max = aux.getMinmax();
+                newRaiz = aux;
             }
         }
+        return newRaiz;
+    }
+
+    public static Node jogadaEquivalente(int jogada, Node raiz) {
+        Node newRaiz = raiz;
+        for (Node aux : raiz.getFilhos()) {
+            if (jogada == aux.getId()) {
+                newRaiz = aux;
+            }
+        }
+
+        return newRaiz;
     }
 
     public static void minMax(Node start) {
         String ganhador;
+        int min = 999, max = 0;
         if (start.getFilhos().isEmpty()) {
             ganhador = verificaGanhador(start.getGamesSquare());
             if (ganhador.equals("IA")) {
@@ -119,8 +132,20 @@ public class DotsMiniMax {
                 start.setMinmax(0);
             }
         } else {
-            for (Node aux : start.getFilhos()) {
-                minMax(aux);
+            if (start.getPlayer().equals("IA")) {
+                for (Node aux : start.getFilhos()) {
+                    if (aux.getMinmax() > max) {
+                        max = aux.getMinmax();
+                    }
+                }
+                start.setMinmax(max);
+            } else {
+                for (Node aux : start.getFilhos()) {
+                    if (aux.getMinmax() < min) {
+                        min = aux.getMinmax();
+                    }
+                }
+                start.setMinmax(min);
             }
         }
     }
@@ -184,8 +209,9 @@ public class DotsMiniMax {
                 posicoes[i] = true;
                 atualizaQuadrado(i + 1, moves, auxPos);
             }
-
         }
+        minMax(start);
+
     }
 
     public static void copiaResult(String original[], String[] copia) {
@@ -225,6 +251,8 @@ public class DotsMiniMax {
                 aux = (Positions) moves.get(13);
                 table[aux.getX()][aux.getY()] = p;
                 repeat = true;
+            } else {
+                gameSquares[0] = "";
             }
         }
         if (jogada == 2 || jogada == 4 || jogada == 7 || jogada == 5) {
@@ -238,6 +266,8 @@ public class DotsMiniMax {
                 aux = (Positions) moves.get(14);
                 table[aux.getX()][aux.getY()] = p;
                 repeat = true;
+            } else {
+                gameSquares[1] = "";
             }
         }
         if (jogada == 6 || jogada == 8 || jogada == 9 || jogada == 11) {
@@ -251,6 +281,8 @@ public class DotsMiniMax {
                 aux = (Positions) moves.get(15);
                 table[aux.getX()][aux.getY()] = p;
                 repeat = true;
+            } else {
+                gameSquares[2] = "";
             }
         }
         if (jogada == 7 || jogada == 9 || jogada == 10 || jogada == 12) {
@@ -264,6 +296,8 @@ public class DotsMiniMax {
                 aux = (Positions) moves.get(16);
                 table[aux.getX()][aux.getY()] = p;
                 repeat = true;
+            } else {
+                gameSquares[3] = "";
             }
         }
 
